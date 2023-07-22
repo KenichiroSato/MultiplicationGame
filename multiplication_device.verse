@@ -57,7 +57,7 @@ multiplication_device := class(creative_device):
     
     Finish():void =
         DamagePlayer()
-        ShowMessage("Finish!!! score : {Score}")
+        ShowMessage("Finish!!! score : {Score}", false)
         UpdateBestScore()
         Monster.Finish()
 
@@ -71,7 +71,7 @@ multiplication_device := class(creative_device):
 
     Restart()<suspends>:void =
         set Score = 0
-        ShowMessage("Shoot the correct answer!")
+        ShowMessage("Shoot the correct answer!", false)
         spawn{ Monster.Start() }
         #Wait till Monster back to the original position
         Sleep(0.2)
@@ -92,28 +92,29 @@ multiplication_device := class(creative_device):
         RightAnswer.SetText(StringToMessage("{Question.RightOption}"))
 
     OnTriggerdRight(MaybeAgent: ?agent) : void =
-        if (Agent := MaybeAgent?):
-            Validate(Question.RightOption, Agent)
+        Validate(Question.RightOption, MaybeAgent)
 
     OnTriggerdLeft(MaybeAgent: ?agent) : void =
-        if (Agent := MaybeAgent?):
-            Validate(Question.LeftOption, Agent)
+        Validate(Question.LeftOption, MaybeAgent)
 
-    ShowMessage(Message: string) : void =
+    ShowMessage(Message: string, MaybeAgent: ?agent) : void =
         HudMessage.Hide()
         HudMessage.SetText(StringToMessage(Message))
-        HudMessage.Show()
+        if (Agent := MaybeAgent?):
+            HudMessage.Show(Agent)
+        else :
+            HudMessage.Show()
 
-    Validate(UserAnswer: int, Agent: agent): void =
+    Validate(UserAnswer: int, MaybeAgent: ?agent): void =
         Result:=Question.Validate(UserAnswer)
         if (Result?):
             set Score = Score + 10
-            ShowMessage("Correct!! Score : {Score}")
+            ShowMessage("Correct!! Score : {Score}", MaybeAgent)
             spawn{ Monster.Move(-400.0, 0.2) }
             SetQuestion()
             Monster.Accelerate()
         else:
-            ShowMessage("Wrong")
+            ShowMessage("Wrong", MaybeAgent)
             spawn{ Monster.Move(400.0, 0.2) }
 
 monster := class:
